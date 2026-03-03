@@ -50,19 +50,23 @@ async function sunoCommand(sock, chatId, message) {
 
         if (!query) {
             return await sock.sendMessage(chatId, {
-                text: "❌ Please provide a song prompt.\n\nUsage: .suno song prompt"
+                text: "❌ Usage: .suno prompt | style | title"
             }, { quoted: message });
         }
 
         await sock.sendMessage(chatId, { react: { text: '🎵', key: message.key } });
 
-        // 🔥 Force Villain dark cinematic style
-        const style = 'Villain';
-        const prompt = `${query}. Dark villain theme song. Intense. No anthem. No stadium chorus. Deep cinematic vibe.`;
-        const title = 'Raza Villain AI Song';
+        // Split input into prompt, style, title
+        const segments = query.split('|').map(s => s.trim());
+        const prompt = segments[0] || "Dark villain theme song";
+        const style = segments[1] || "Villain";
+        const title = segments[2] || "Raza Villain AI Song";
+
+        // Force Villain prompt adjustments to avoid anthem
+        const finalPrompt = `${prompt}. Dark villain theme song. Intense. No anthem. No stadium chorus. Deep cinematic vibe.`;
 
         const apiKey = getRandomApiKey();
-        const taskId = await createTask(prompt, style, title, apiKey);
+        const taskId = await createTask(finalPrompt, style, title, apiKey);
 
         let audioUrl = null;
         let attempts = 0;
@@ -88,7 +92,7 @@ async function sunoCommand(sock, chatId, message) {
                     if (imageUrl) {
                         await sock.sendMessage(chatId, {
                             image: { url: imageUrl },
-                            caption: `🎵 ${songTitle}\nStyle: Villain`
+                            caption: `🎵 ${songTitle}\nStyle: ${style}`
                         }, { quoted: message });
                     }
 
